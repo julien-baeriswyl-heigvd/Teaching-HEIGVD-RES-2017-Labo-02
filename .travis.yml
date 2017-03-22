@@ -1,0 +1,2 @@
+language: java
+script: sh -c 'cd QuizRouletteServer-build && mvn clean test'
