@@ -15,6 +15,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * This class implements the client side of the protocol specification (version 1).
@@ -79,14 +80,17 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @param data
      * @return
      */
-    private boolean sendData (String data) throws IOException
+    private boolean sendData (Object... data) throws IOException
     {
         if (clientSocket != null)
         {
-            pw.println(data);
-            if (pw.checkError())
+            for (Object item : data)
             {
-                throw new IOException("failed to send data");
+                pw.println(item.toString());
+                if (pw.checkError())
+                {
+                    throw new IOException("failed to send data");
+                }
             }
 
             pw.println(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER);
@@ -110,6 +114,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         {
             pw = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            br.readLine();
         }
     }
 
@@ -130,7 +135,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     public boolean isConnected()
     {
         // JBL: ?
-        return clientSocket.isConnected();
+        return clientSocket != null && clientSocket.isConnected();
     }
 
     @Override
@@ -144,7 +149,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 
         if (!sendData(fullname))
         {
-
+            throw new IOException("failed to load student");
         }
     }
 
@@ -158,6 +163,11 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         {
             throw new IOException("failed to launch LOAD operation");
         }
+
+        if (!sendData(students.toArray()))
+        {
+            throw new IOException("failed to load all students");
+        }
     }
 
     @Override
@@ -167,6 +177,13 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         if (!sendCommand(CommandNumber.RANDOM))
         {
             throw new IOException("failed to retrieve student");
+        }
+
+        RandomCommandResponse rcr = JsonObjectMapper.parseJson(answer, RandomCommandResponse.class);
+
+        if (!rcr.getError().isEmpty())
+        {
+            throw new EmptyStoreException();
         }
 
         return Student.fromJson(answer);
