@@ -32,21 +32,13 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     private String         answer;
 
     /**
-     * Verify command is available in protocol
+     * Get list of supported commands in protocol
      *
-     * @param cmd  protocol command to verify
-     * @return <code>true</code> if command is valid, else <code>false</code>
+     * @return commands list
      */
-    protected boolean isValidCommand (String cmd)
+    protected String[] getSupportedCommands ()
     {
-        for (String supported : RouletteV1Protocol.SUPPORTED_COMMANDS)
-        {
-            if (cmd.equals(supported))
-            {
-                return true;
-            }
-        }
-        return false;
+        return RouletteV1Protocol.SUPPORTED_COMMANDS;
     }
 
     /**
@@ -56,7 +48,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @return <code>true</code> if answer is fine, else <code>false</code>
      * @throws IOException if reading answer failed
      */
-    protected boolean checkAnswer (String cmd) throws IOException
+    protected boolean retrieveAnswer (String cmd) throws IOException
     {
         // JBL: get and check server answer if command is not last (BYE)
         if (!cmd.equals(RouletteV1Protocol.CMD_BYE))
@@ -68,13 +60,41 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     }
 
     /**
+     * Get last server answer content.
+     *
+     * @return server answer
+     */
+    final protected String getAnswer()
+    {
+        return answer;
+    }
+
+    /**
+     * Verify command is available in protocol
+     *
+     * @param cmd  protocol command to verify
+     * @return <code>true</code> if command is valid, else <code>false</code>
+     */
+    final protected boolean isValidCommand (String cmd)
+    {
+        for (String supported : getSupportedCommands())
+        {
+            if (cmd.equals(supported))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Send command to server through client socket.
      *
      * @param cmd  command token send to server
      * @return <code>true</code> if send operation succeed, else <code>false</code>
      * @throws IOException if write operation to server failed
      */
-    protected boolean sendCommand (String cmd) throws IOException
+    final protected boolean sendCommand (String cmd) throws IOException
     {
         // JBL: control socket connexion
         if (!isConnected())
@@ -96,7 +116,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: check server answered properly
-        return checkAnswer(cmd);
+        return retrieveAnswer(cmd);
     }
 
     /**
@@ -107,7 +127,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @return <code>true</code> if operation succeed, else <code>false</code>
      * @throws IOException if writing or reading into streams failed
      */
-    protected boolean sendData (Object... data) throws IOException
+    final protected boolean sendData (Object... data) throws IOException
     {
         // JBL: control socket connexion
         if (!isConnected())
