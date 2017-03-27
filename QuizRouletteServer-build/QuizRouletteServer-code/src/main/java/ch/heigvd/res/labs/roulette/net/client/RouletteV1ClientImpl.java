@@ -24,15 +24,6 @@ import java.util.stream.Collectors;
  */
 public class RouletteV1ClientImpl implements IRouletteV1Client
 {
-    private enum CommandNumber
-    {
-        HELP,
-        RANDOM,
-        LOAD,
-        INFO,
-        BYE
-    }
-
     private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
 
     private Socket         clientSocket;
@@ -41,32 +32,35 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     private String         answer;
 
     /**
+     * Send command to server through client socket
      *
-     * @param nr
-     * @return
-     * @throws IOException
+     * @remark no control over command string is needed, because of private internal use
+     *
+     * @param cmd  command token send to server
+     * @return <code>true</code> if send operation succeed, else <code>false</code>
+     * @throws IOException if write operation to server failed
      */
-    private boolean sendCommand (CommandNumber nr) throws IOException
+    private boolean sendCommand (String cmd) throws IOException
     {
         // JBL: ?
         if (clientSocket != null)
         {
-            pw.println(RouletteV1Protocol.SUPPORTED_COMMANDS[nr.ordinal()]);
+            pw.println(cmd);
 
             if (pw.checkError())
             {
-                throw new IOException("failed to send command - `" + RouletteV1Protocol.SUPPORTED_COMMANDS[nr.ordinal()] + "`");
+                throw new IOException("failed to send command - `" + cmd + "`");
             }
 
-            switch(nr)
+            switch(cmd)
             {
-                case HELP:
-                case INFO:
-                case RANDOM:
-                case LOAD:
+                case RouletteV1Protocol.CMD_HELP:
+                case RouletteV1Protocol.CMD_INFO:
+                case RouletteV1Protocol.CMD_RANDOM:
+                case RouletteV1Protocol.CMD_LOAD:
                     answer = br.readLine();
                     return !answer.isEmpty();
-                case BYE:
+                case RouletteV1Protocol.CMD_BYE:
                     return true;
                 default:
                     return false;
@@ -76,9 +70,11 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     }
 
     /**
+     * Send data formatted to string. Each data item is sent on one line.
      *
-     * @param data
-     * @return
+     * @param data array containing data to send
+     * @return <code>true</code> if operation succeed, else <code>false</code>
+     * @throws IOException if writing or reading into streams failed
      */
     private boolean sendData (Object... data) throws IOException
     {
@@ -108,12 +104,14 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public void connect(String server, int port) throws IOException
     {
-        // JBL: ?
+        // JBL: create a new client socket and open input and output streams when connected
         clientSocket = new Socket(server, port);
         if (isConnected())
         {
             pw = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            // JBL: destroy initial text message send by server
             br.readLine();
         }
     }
@@ -121,28 +119,31 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public void disconnect() throws IOException
     {
-        // JBL: ?
-        if (sendCommand(CommandNumber.BYE))
+        // JBL: send BYE command and clear resources (socket included)
+        if (sendCommand(RouletteV1Protocol.CMD_BYE))
         {
+            pw.close();
+            br.close();
             clientSocket.close();
-            clientSocket = null;
+
             pw = null;
             br = null;
+            clientSocket = null;
         }
     }
 
     @Override
     public boolean isConnected()
     {
-        // JBL: ?
+        // JBL: test if client socket exists and is connected
         return clientSocket != null && clientSocket.isConnected();
     }
 
     @Override
     public void loadStudent(String fullname) throws IOException
     {
-        // JBL: ?
-        if (!sendCommand(CommandNumber.LOAD))
+        // JBL: first send command LOAD and send name of student
+        if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
             throw new IOException("failed to launch LOAD operation");
         }
@@ -156,10 +157,8 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public void loadStudents(List<Student> students) throws IOException
     {
-        final String SEPARATOR = String.format("%n");
-
-        // JBL: ?
-        if (!sendCommand(CommandNumber.LOAD))
+        // JBL: first send command LOAD and send names line by line
+        if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
             throw new IOException("failed to launch LOAD operation");
         }
@@ -173,27 +172,28 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public Student pickRandomStudent() throws EmptyStoreException, IOException
     {
-        // JBL: ?
-        if (!sendCommand(CommandNumber.RANDOM))
+        // JBL: send command RANDOM, then test answer value
+        if (!sendCommand(RouletteV1Protocol.CMD_RANDOM))
         {
             throw new IOException("failed to retrieve student");
         }
 
+        // JBL: test if error occurred, for instance: no student available
         RandomCommandResponse rcr = JsonObjectMapper.parseJson(answer, RandomCommandResponse.class);
-
         if (!rcr.getError().isEmpty())
         {
             throw new EmptyStoreException();
         }
 
+        // JBL: if no error, then convert answer to Student.
         return Student.fromJson(answer);
     }
 
     @Override
     public int getNumberOfStudents() throws IOException
     {
-        // JBL: ?
-        if(!sendCommand(CommandNumber.INFO))
+        // JBL: send INFO command and convert answer to InfoCommandResponse
+        if(!sendCommand(RouletteV1Protocol.CMD_INFO))
         {
             throw new IOException("failed to retrieve global information");
         }
@@ -204,8 +204,8 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public String getProtocolVersion() throws IOException
     {
-        // JBL: ?
-        if(!sendCommand(CommandNumber.INFO))
+        // JBL: send INFO command and convert answer to InfoCommandResponse
+        if(!sendCommand(RouletteV1Protocol.CMD_INFO))
         {
             throw new IOException("failed to retrieve global information");
         }
