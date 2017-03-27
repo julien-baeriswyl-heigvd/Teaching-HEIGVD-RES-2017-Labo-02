@@ -6,20 +6,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
+import ch.heigvd.res.labs.roulette.net.protocol.InfoCommandResponse;
+import ch.heigvd.res.labs.roulette.net.protocol.RandomCommandResponse;
+import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
+import ch.heigvd.res.labs.roulette.data.EmptyStoreException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  * This class implements the Roulette protocol (version 2).
  *
  * @author Olivier Liechti
  * @author Julien Baeriswyl   [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
- * @author Iando Rafidimalala [MODIFIED BY] (iando.rafidimalala@heig-vd.ch)
+ * @author Iando Rafidimalala [MODIFIED BY] (iando.rafidimalalathevoz@heig-vd.ch)
  */
 public class RouletteV2ClientHandler implements IClientHandler
 {
@@ -57,10 +61,10 @@ public class RouletteV2ClientHandler implements IClientHandler
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_HELP:
-                    writer.println("Commands: " + Arrays.toString(RouletteV1Protocol.SUPPORTED_COMMANDS));
+                    writer.println("Commands: " + Arrays.toString(RouletteV2Protocol.SUPPORTED_COMMANDS));
                     break;
                 case RouletteV2Protocol.CMD_INFO:
-                    InfoCommandResponse response = new InfoCommandResponse(RouletteV1Protocol.VERSION, store.getNumberOfStudents());
+                    InfoCommandResponse response = new InfoCommandResponse(RouletteV2Protocol.VERSION, store.getNumberOfStudents());
                     writer.println(JsonObjectMapper.toJson(response));
                     writer.flush();
                     break;

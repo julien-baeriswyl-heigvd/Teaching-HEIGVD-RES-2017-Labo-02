@@ -3,20 +3,16 @@ package ch.heigvd.res.labs.roulette.net.client;
 import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
 import ch.heigvd.res.labs.roulette.data.Student;
 import ch.heigvd.res.labs.roulette.data.StudentsList;
-import ch.heigvd.res.labs.roulette.net.protocol.RouletteV1Protocol;
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * This class implements the client side of the protocol specification (version 2).
  *
  * @author Olivier Liechti
- * @author Julien Baeriswyl   [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
- * @author Iando Rafidimalala [MODIFIED BY] (iando.rafidimalala@heig-vd.ch)
+ * @author Julien  Baeriswyl    [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
+ * @author Iando   Rafidimalala [MODIFIED BY] (iando.rafidimalalathevoz@heig-vd.ch)
  */
 public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRouletteV2Client
 {
