@@ -27,78 +27,113 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
 
     private Socket         clientSocket;
-    private PrintWriter    pw;
     private BufferedReader br;
+    private PrintWriter    pw;
     private String         answer;
 
     /**
-     * Send command to server through client socket
+     * Verify command is available in protocol
      *
-     * @remark no control over command string is needed, because of private internal use
-     *
-     * @param cmd  command token send to server
-     * @return <code>true</code> if send operation succeed, else <code>false</code>
-     * @throws IOException if write operation to server failed
+     * @param cmd  protocol command to verify
+     * @return <code>true</code> if command is valid, else <code>false</code>
      */
-    private boolean sendCommand (String cmd) throws IOException
+    protected boolean isValidCommand (String cmd)
     {
-        // JBL: ?
-        if (clientSocket != null)
+        for (String supported : RouletteV1Protocol.SUPPORTED_COMMANDS)
         {
-            pw.println(cmd);
-
-            if (pw.checkError())
+            if (cmd.equals(supported))
             {
-                throw new IOException("failed to send command - `" + cmd + "`");
-            }
-
-            switch(cmd)
-            {
-                case RouletteV1Protocol.CMD_HELP:
-                case RouletteV1Protocol.CMD_INFO:
-                case RouletteV1Protocol.CMD_RANDOM:
-                case RouletteV1Protocol.CMD_LOAD:
-                    answer = br.readLine();
-                    return !answer.isEmpty();
-                case RouletteV1Protocol.CMD_BYE:
-                    return true;
-                default:
-                    return false;
+                return true;
             }
         }
         return false;
     }
 
     /**
-     * Send data formatted to string. Each data item is sent on one line.
+     * Retrieve and control answer.
+     *
+     * @param cmd  last command sent to server
+     * @return <code>true</code> if answer is fine, else <code>false</code>
+     * @throws IOException if reading answer failed
+     */
+    protected boolean checkAnswer (String cmd) throws IOException
+    {
+        // JBL: get and check server answer if command is not last (BYE)
+        if (!cmd.equals(RouletteV1Protocol.CMD_BYE))
+        {
+            answer = br.readLine();
+            return !answer.isEmpty();
+        }
+        return true;
+    }
+
+    /**
+     * Send command to server through client socket.
+     *
+     * @param cmd  command token send to server
+     * @return <code>true</code> if send operation succeed, else <code>false</code>
+     * @throws IOException if write operation to server failed
+     */
+    protected boolean sendCommand (String cmd) throws IOException
+    {
+        // JBL: control socket connexion
+        if (!isConnected())
+        {
+            throw new IOException("client is not connected");
+        }
+
+        // JBL: check validity of command
+        if (!isValidCommand(cmd))
+        {
+            throw new IOException("command is not available - `" + cmd + "`");
+        }
+
+        // JBL: send command
+        pw.println(cmd);
+        if (pw.checkError())
+        {
+            throw new IOException("failed to send command - `" + cmd + "`");
+        }
+
+        // JBL: check server answered properly
+        return checkAnswer(cmd);
+    }
+
+    /**
+     * Send data formatted to string.
+     * Each data item is sent on one line.
      *
      * @param data array containing data to send
      * @return <code>true</code> if operation succeed, else <code>false</code>
      * @throws IOException if writing or reading into streams failed
      */
-    private boolean sendData (Object... data) throws IOException
+    protected boolean sendData (Object... data) throws IOException
     {
-        if (clientSocket != null)
+        // JBL: control socket connexion
+        if (!isConnected())
         {
-            for (Object item : data)
-            {
-                pw.println(item.toString());
-                if (pw.checkError())
-                {
-                    throw new IOException("failed to send data");
-                }
-            }
-
-            pw.println(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER);
-            if (pw.checkError())
-            {
-                throw new IOException("failed to send EOT");
-            }
-
-            return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
+            throw new IOException("client is not connected");
         }
 
-        return false;
+        // JBL: send items line by line
+        for (Object item : data)
+        {
+            pw.println(item.toString());
+            if (pw.checkError())
+            {
+                throw new IOException("failed to send data");
+            }
+        }
+
+        // JBL: indicate end of transmission to server
+        pw.println(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER);
+        if (pw.checkError())
+        {
+            throw new IOException("failed to send EOT");
+        }
+
+        // JBL: check server answered successful loading
+        return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
     }
 
     @Override
@@ -108,8 +143,9 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         clientSocket = new Socket(server, port);
         if (isConnected())
         {
-            pw = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            // JBL: open input and output stream
             br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            pw = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
             // JBL: destroy initial text message send by server
             br.readLine();
@@ -120,7 +156,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     public void disconnect() throws IOException
     {
         // JBL: send BYE command and clear resources (socket included)
-        if (sendCommand(RouletteV1Protocol.CMD_BYE))
+        if (sendCommand(RouletteV1Protocol.CMD_BYE) && !clientSocket.isConnected())
         {
             pw.close();
             br.close();
@@ -142,12 +178,13 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public void loadStudent(String fullname) throws IOException
     {
-        // JBL: first send command LOAD and send name of student
+        // JBL: first send command LOAD
         if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
             throw new IOException("failed to launch LOAD operation");
         }
 
+        // JBL: send name of student
         if (!sendData(fullname))
         {
             throw new IOException("failed to load student");
@@ -157,15 +194,16 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public void loadStudents(List<Student> students) throws IOException
     {
-        // JBL: first send command LOAD and send names line by line
+        // JBL: first send command LOAD
         if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
             throw new IOException("failed to launch LOAD operation");
         }
 
+        // JBL: send Student names line by line
         if (!sendData(students.toArray()))
         {
-            throw new IOException("failed to load all students");
+            throw new IOException("failed to load students list");
         }
     }
 
@@ -192,24 +230,26 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     @Override
     public int getNumberOfStudents() throws IOException
     {
-        // JBL: send INFO command and convert answer to InfoCommandResponse
+        // JBL: send INFO command
         if(!sendCommand(RouletteV1Protocol.CMD_INFO))
         {
             throw new IOException("failed to retrieve global information");
         }
 
+        // JBL: convert answer to InfoCommandResponse and get number of students
         return JsonObjectMapper.parseJson(answer, InfoCommandResponse.class).getNumberOfStudents();
     }
 
     @Override
     public String getProtocolVersion() throws IOException
     {
-        // JBL: send INFO command and convert answer to InfoCommandResponse
+        // JBL: send INFO command
         if(!sendCommand(RouletteV1Protocol.CMD_INFO))
         {
             throw new IOException("failed to retrieve global information");
         }
 
+        // JBL: convert answer to InfoCommandResponse and get protocol version
         return JsonObjectMapper.parseJson(answer, InfoCommandResponse.class).getProtocolVersion();
     }
 }
