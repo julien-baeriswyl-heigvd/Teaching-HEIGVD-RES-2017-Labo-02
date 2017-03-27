@@ -61,7 +61,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     }
 
     /**
-     * Get last server answer content.
+     * Get last retrieved server answer content.
      *
      * @return server answer
      */
@@ -153,7 +153,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         pw.flush();
         if (pw.checkError())
         {
-            throw new IOException("failed to send EOT");
+            throw new IOException("failed to indicate end of data");
         }
 
         // JBL: check server answered successful loading
@@ -180,7 +180,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     public void disconnect() throws IOException
     {
         // JBL: send BYE command and clear resources (socket included)
-        if (sendCommand(RouletteV1Protocol.CMD_BYE) && !clientSocket.isConnected())
+        if (sendCommand(RouletteV1Protocol.CMD_BYE) && isConnected())
         {
             pw.close();
             br.close();
@@ -205,7 +205,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         // JBL: first send command LOAD
         if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
-            throw new IOException("failed to launch LOAD operation");
+            throw new IOException("failed to launch loading operation");
         }
 
         // JBL: send name of student
@@ -221,7 +221,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         // JBL: first send command LOAD
         if (!sendCommand(RouletteV1Protocol.CMD_LOAD))
         {
-            throw new IOException("failed to launch LOAD operation");
+            throw new IOException("failed to launch loading operation");
         }
 
         // JBL: send Student names line by line
@@ -241,14 +241,14 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: test if error occurred, for instance: no student available
-        RandomCommandResponse rcr = JsonObjectMapper.parseJson(answer, RandomCommandResponse.class);
+        RandomCommandResponse rcr = JsonObjectMapper.parseJson(getAnswer(), RandomCommandResponse.class);
         if (!rcr.getError().isEmpty())
         {
             throw new EmptyStoreException();
         }
 
         // JBL: if no error, then convert answer to Student.
-        return Student.fromJson(answer);
+        return Student.fromJson(getAnswer());
     }
 
     @Override
@@ -261,7 +261,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: convert answer to InfoCommandResponse and get number of students
-        return JsonObjectMapper.parseJson(answer, InfoCommandResponse.class).getNumberOfStudents();
+        return JsonObjectMapper.parseJson(getAnswer(), InfoCommandResponse.class).getNumberOfStudents();
     }
 
     @Override
@@ -274,6 +274,6 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: convert answer to InfoCommandResponse and get protocol version
-        return JsonObjectMapper.parseJson(answer, InfoCommandResponse.class).getProtocolVersion();
+        return JsonObjectMapper.parseJson(getAnswer(), InfoCommandResponse.class).getProtocolVersion();
     }
 }
