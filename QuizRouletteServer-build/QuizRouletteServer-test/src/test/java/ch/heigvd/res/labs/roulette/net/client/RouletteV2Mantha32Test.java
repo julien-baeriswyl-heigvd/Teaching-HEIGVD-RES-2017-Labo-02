@@ -29,16 +29,54 @@ public class RouletteV2Mantha32Test
 
     @Test
     @TestAuthor(githubId = "Mantha32")
+    public void clientShouldBeAbleToRetrieveProtocolVersionFromServer () throws IOException
+    {
+        assertEquals(RouletteV2Protocol.VERSION, roulettePair.getClient().getProtocolVersion());
+    }
+
+    @Test
+    @TestAuthor(githubId = "Mantha32")
+    public void clientNumberOfStudentsAndStudentsListShouldMatch () throws IOException
+    {
+        // BEGIN: TO REPLACE WHEN IRouletteV2Client WILL BE AVAILABLE THROUGH RESOURCES
+        IRouletteV2Client client = new RouletteV2ClientImpl();
+        client.connect("localhost", roulettePair.getServer().getPort());
+        // END:   TO REPLACE WHEN IRouletteV2Client WILL BE AVAILABLE THROUGH RESOURCES
+
+        assertTrue(client.isConnected());
+        assertEquals(client.listStudents().size(), client.getNumberOfStudents());
+
+        List<Student> students;
+
+        for (int i = 1; i <= 10; ++i)
+        {
+            client.loadStudent("Iando" + i);
+            students = client.listStudents();
+            assertTrue(students.size() > 0);
+            assertEquals(students.size(), client.getNumberOfStudents());
+        }
+    }
+
+    @Test
+    @TestAuthor(githubId = "Mantha32")
     public void clientShouldBeAbleToListAndClearStudents () throws IOException
     {
-        List<Student> students = new ArrayList<Student>();
-        students.add(new Student("Julien Baeriswyl"));
-        students.add(new Student("Iando Rafidimalala"));
+        // BEGIN: TO REPLACE WHEN IRouletteV2Client WILL BE AVAILABLE THROUGH RESOURCES
+        IRouletteV2Client client = new RouletteV2ClientImpl();
+        client.connect("localhost", roulettePair.getServer().getPort());
+        // END:   TO REPLACE WHEN IRouletteV2Client WILL BE AVAILABLE THROUGH RESOURCES
 
-        IRouletteV2Client client = roulettePair.getClient();
+        assertTrue(client.isConnected());
 
-        for (Student s : students)
+        List<Student> students       = client.listStudents(),
+                      futureStudents = new ArrayList<Student>();
+
+        futureStudents.add(new Student("Julien Baeriswyl"));
+        futureStudents.add(new Student("Iando Rafidimalala"));
+
+        for (Student s : futureStudents)
         {
+            students.add(s);
             client.loadStudent(s.getFullname());
         }
 
