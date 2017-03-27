@@ -20,8 +20,8 @@ import java.util.logging.Logger;
  * This class implements the client side of the protocol specification (version 1).
  * 
  * @author Olivier Liechti
- * @author Julien  Baeriswyl    [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
- * @author Iando   Rafidimalala [MODIFIED BY] (iando.rafidimalala@heig-vd.ch)
+ * @author Julien  Baeriswyl    [MODIFIED BY] (julien.baeriswyl@heig-vd.ch,         julien-baeriswyl-heigvd)
+ * @author Iando   Rafidimalala [MODIFIED BY] (iando.rafidimalalathevoz@heig-vd.ch, Mantha32)
  */
 public class RouletteV1ClientImpl implements IRouletteV1Client
 {
