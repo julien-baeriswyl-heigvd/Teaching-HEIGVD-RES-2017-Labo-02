@@ -6,21 +6,22 @@ import ch.heigvd.res.labs.roulette.net.protocol.RouletteV1Protocol;
 import ch.heigvd.res.labs.roulette.data.Student;
 import ch.heigvd.res.labs.roulette.net.protocol.InfoCommandResponse;
 import ch.heigvd.res.labs.roulette.net.protocol.RandomCommandResponse;
-
-import java.io.*;
-import java.lang.reflect.Array;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
  * This class implements the client side of the protocol specification (version 1).
  * 
  * @author Olivier Liechti
+ * @author Julien  Baeriswyl    [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
+ * @author Iando   Rafidimalala [MODIFIED BY] (iando.rafidimalala@heig-vd.ch)
  */
 public class RouletteV1ClientImpl implements IRouletteV1Client
 {
@@ -110,6 +111,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 
         // JBL: send command
         pw.println(cmd);
+        pw.flush();
         if (pw.checkError())
         {
             throw new IOException("failed to send command - `" + cmd + "`");
@@ -139,6 +141,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         for (Object item : data)
         {
             pw.println(item.toString());
+            pw.flush();
             if (pw.checkError())
             {
                 throw new IOException("failed to send data");
@@ -147,6 +150,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 
         // JBL: indicate end of transmission to server
         pw.println(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER);
+        pw.flush();
         if (pw.checkError())
         {
             throw new IOException("failed to send EOT");
