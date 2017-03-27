@@ -34,10 +34,10 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     /**
      * Verify command is available in protocol
      *
-     * @param cmd
-     * @return
+     * @param cmd  protocol command to verify
+     * @return <code>true</code> if command is valid, else <code>false</code>
      */
-    protected boolean checkCommand (String cmd)
+    protected boolean isValidCommand (String cmd)
     {
         for (String supported : RouletteV1Protocol.SUPPORTED_COMMANDS)
         {
@@ -83,7 +83,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: check validity of command
-        if (!checkCommand(cmd))
+        if (!isValidCommand(cmd))
         {
             throw new IOException("command is not available - `" + cmd + "`");
         }
