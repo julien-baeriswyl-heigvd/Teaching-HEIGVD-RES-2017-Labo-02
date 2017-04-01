@@ -45,10 +45,16 @@ public class RouletteV2ClientHandler implements IClientHandler
         writer.println("Hello. Online HELP is available. Will you find it?");
         writer.flush();
 
+        String successStatus = "success";
         String command;
         boolean done = false;
+        int nbCommand = 0;
+
         while (!done && ((command = reader.readLine()) != null)) {
             LOG.log(Level.INFO, "COMMAND: {0}", command);
+            // When we reach this state, we have a wellformed command
+            nbCommand++;
+
             switch (command.toUpperCase()) {
                 case RouletteV2Protocol.CMD_RANDOM:
                     RandomCommandResponse rcResponse = new RandomCommandResponse();
@@ -71,11 +77,29 @@ public class RouletteV2ClientHandler implements IClientHandler
                 case RouletteV2Protocol.CMD_LOAD:
                     writer.println(RouletteV2Protocol.RESPONSE_LOAD_START);
                     writer.flush();
+                    int oldNumberOfStudent = store.getNumberOfStudents();
                     store.importData(reader);
+
+                    // retrieve the number of the new students and check the difference after storage action
+                    int numberOfNewStudents = store.getNumberOfStudents() - oldNumberOfStudent;
+                    writer.println(JsonObjectMapper.toJson(new InfoCommandResponse(successStatus, numberOfNewStudents)));
+
                     writer.println(RouletteV2Protocol.RESPONSE_LOAD_DONE);
                     writer.flush();
                     break;
+                case RouletteV2Protocol.CMD_LIST:
+                    writer.println(JsonObjectMapper.toJson(store.listStudents()));
+                    writer.flush();
+                    break;
+                case RouletteV2Protocol.CMD_CLEAR:
+                    store.clear();
+                    writer.println(RouletteV2Protocol.RESPONSE_CLEAR_DONE);
+                    writer.flush();
+                    break;
                 case RouletteV2Protocol.CMD_BYE:
+                    response = new InfoCommandResponse(RouletteV2Protocol.VERSION, nbCommand);
+                    writer.println(JsonObjectMapper.toJson(response));
+                    writer.flush();
                     done = true;
                     break;
                 default:

@@ -4,6 +4,7 @@ import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
 import ch.heigvd.res.labs.roulette.data.Student;
 import ch.heigvd.res.labs.roulette.data.StudentsList;
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
+import ch.heigvd.res.labs.roulette.net.protocol.RouletteV1Protocol;
 import java.io.IOException;
 import java.util.List;
 
@@ -20,6 +21,11 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
     protected String[] getSupportedCommands ()
     {
         return RouletteV2Protocol.SUPPORTED_COMMANDS;
+    }
+
+    protected boolean hasSendDataSucceed (Object... data) throws IOException
+    {
+        return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
     }
 
     @Override
