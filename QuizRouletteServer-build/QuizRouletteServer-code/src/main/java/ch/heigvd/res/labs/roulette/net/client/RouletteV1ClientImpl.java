@@ -27,10 +27,10 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 {
     private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
 
-    private Socket         clientSocket;
-    private BufferedReader br;
-    private PrintWriter    pw;
-    private String         answer;
+    private   Socket         clientSocket;
+    protected BufferedReader br;
+    protected PrintWriter    pw;
+    protected String         answer;
 
     /**
      * Get list of supported commands in protocol
@@ -122,6 +122,14 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     }
 
     /**
+     *
+     */
+    protected boolean hasSendDataSucceed (Object... data) throws IOException
+    {
+        return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
+    }
+
+    /**
      * Send data formatted to string.
      * Each data item is sent on one line.
      *
@@ -157,7 +165,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         }
 
         // JBL: check server answered successful loading
-        return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
+        return hasSendDataSucceed(data);
     }
 
     @Override

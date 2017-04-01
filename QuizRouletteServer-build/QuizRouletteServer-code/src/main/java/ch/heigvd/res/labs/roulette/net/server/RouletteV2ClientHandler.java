@@ -49,10 +49,12 @@ public class RouletteV2ClientHandler implements IClientHandler
         String command;
         boolean done = false;
         int nbCommand = 0;
+
         while (!done && ((command = reader.readLine()) != null)) {
             LOG.log(Level.INFO, "COMMAND: {0}", command);
             // When we reach this state, we have a wellformed command
             nbCommand++;
+
             switch (command.toUpperCase()) {
                 case RouletteV2Protocol.CMD_RANDOM:
                     RandomCommandResponse rcResponse = new RandomCommandResponse();

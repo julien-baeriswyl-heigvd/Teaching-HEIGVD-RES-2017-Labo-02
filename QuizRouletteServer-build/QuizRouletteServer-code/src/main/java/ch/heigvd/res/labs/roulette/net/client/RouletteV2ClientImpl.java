@@ -22,6 +22,11 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
         return RouletteV2Protocol.SUPPORTED_COMMANDS;
     }
 
+    protected boolean hasSendDataSucceed (Object... data) throws IOException
+    {
+        return br.readLine().equals(RouletteV1Protocol.RESPONSE_LOAD_DONE);
+    }
+
     @Override
     public void clearDataStore() throws IOException
     {
