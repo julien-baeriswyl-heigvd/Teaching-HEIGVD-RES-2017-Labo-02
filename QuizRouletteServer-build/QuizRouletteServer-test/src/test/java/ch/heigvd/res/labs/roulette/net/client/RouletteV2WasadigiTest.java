@@ -1,6 +1,7 @@
 package ch.heigvd.res.labs.roulette.net.client;
 
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
@@ -10,6 +11,7 @@ import org.junit.rules.ExpectedException;
  *
  * @author Olivier Liechti
  */
+@Ignore
 public class RouletteV2WasadigiTest {
 
   @Rule
