@@ -1,12 +1,12 @@
 package ch.heigvd.res.labs.roulette.net.protocol;
 
 /**
- This class is used to serialize/deserialize the response sent by the server
+ * This class is used to serialize/deserialize the response sent by the server
  * when processing the "BYE" command defined in the protocol specification. The
  * JsonObjectMapper utility class can use this class.
  *
- * @author Julien  Baeriswyl    [MODIFIED BY] (julien.baeriswyl@heig-vd.ch)
- * @author Iando   Rafidimalala [MODIFIED BY] (iando.rafidimalalathevoz@heig-vd.ch)
+ * @author Julien  Baeriswyl    [CREATED BY] (julien.baeriswyl@heig-vd.ch)
+ * @author Iando   Rafidimalala [CREATED BY] (iando.rafidimalalathevoz@heig-vd.ch)
  */
 
 public class ByeCommandResponse {

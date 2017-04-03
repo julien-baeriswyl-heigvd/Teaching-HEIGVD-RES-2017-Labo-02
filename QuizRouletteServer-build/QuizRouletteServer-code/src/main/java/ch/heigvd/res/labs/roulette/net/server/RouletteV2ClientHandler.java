@@ -75,27 +75,34 @@ public class RouletteV2ClientHandler implements IClientHandler
                 case RouletteV2Protocol.CMD_LOAD:
                     writer.println(RouletteV2Protocol.RESPONSE_LOAD_START);
                     writer.flush();
+
                     int oldNumberOfStudent = store.getNumberOfStudents();
+
                     store.importData(reader);
 
-                    // retrieve the number of the new students and check the difference after storage action
+                    // Mantha32: retrieve the number of the new students and check the difference after storage action
                     int numberOfNewStudents = store.getNumberOfStudents() - oldNumberOfStudent;
-                    writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(LoadCommandResponse.SUCCESS, numberOfNewStudents)));
 
+                    writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(LoadCommandResponse.SUCCESS, numberOfNewStudents)));
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_LIST:
+                    // JBL: Need conversion List<Student> -> StudentList to serialize
                     StudentsList sl = new StudentsList();
                     sl.setStudents(store.listStudents());
+
+                    // JBL: server send list of stored students
                     writer.println(JsonObjectMapper.toJson(sl));
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_CLEAR:
+                    // JBL: server clears stored students and tells it to client
                     store.clear();
                     writer.println(RouletteV2Protocol.RESPONSE_CLEAR_DONE);
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_BYE:
+                    // JBL: server now response number of command with status of BYE.
                     writer.println(JsonObjectMapper.toJson(new ByeCommandResponse(ByeCommandResponse.SUCCESS, nbCommand)));
                     writer.flush();
                     done = true;
