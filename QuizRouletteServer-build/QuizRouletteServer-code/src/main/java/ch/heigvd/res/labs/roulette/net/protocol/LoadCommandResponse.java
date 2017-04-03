@@ -12,6 +12,9 @@ package ch.heigvd.res.labs.roulette.net.protocol;
 
 
 public class LoadCommandResponse {
+    public static final String SUCCESS = "success",
+                               FAILURE = "failure";
+
     private String status;
     private int numberOfNewStudents;
 

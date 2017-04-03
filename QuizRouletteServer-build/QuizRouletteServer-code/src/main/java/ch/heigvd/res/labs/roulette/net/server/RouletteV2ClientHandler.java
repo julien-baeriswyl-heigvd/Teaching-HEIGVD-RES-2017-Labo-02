@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
-import ch.heigvd.res.labs.roulette.net.protocol.InfoCommandResponse;
-import ch.heigvd.res.labs.roulette.net.protocol.RandomCommandResponse;
+import ch.heigvd.res.labs.roulette.net.protocol.*;
 import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
 import ch.heigvd.res.labs.roulette.data.EmptyStoreException;
 import java.io.InputStreamReader;
@@ -45,7 +43,7 @@ public class RouletteV2ClientHandler implements IClientHandler
         writer.println("Hello. Online HELP is available. Will you find it?");
         writer.flush();
 
-        String successStatus = "success";
+        String successStatus = LoadCommandResponse.SUCCESS;
         String command;
         boolean done = false;
         int nbCommand = 0;
@@ -82,7 +80,7 @@ public class RouletteV2ClientHandler implements IClientHandler
 
                     // retrieve the number of the new students and check the difference after storage action
                     int numberOfNewStudents = store.getNumberOfStudents() - oldNumberOfStudent;
-                    writer.println(JsonObjectMapper.toJson(new InfoCommandResponse(successStatus, numberOfNewStudents)));
+                    writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(successStatus, numberOfNewStudents)));
 
                     writer.println(RouletteV2Protocol.RESPONSE_LOAD_DONE);
                     writer.flush();
@@ -97,8 +95,7 @@ public class RouletteV2ClientHandler implements IClientHandler
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_BYE:
-                    response = new InfoCommandResponse(RouletteV2Protocol.VERSION, nbCommand);
-                    writer.println(JsonObjectMapper.toJson(response));
+                    writer.println(JsonObjectMapper.toJson(new ByeCommandResponse(ByeCommandResponse.SUCCESS, nbCommand)));
                     writer.flush();
                     done = true;
                     break;

@@ -122,7 +122,11 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
     }
 
     /**
+     * Check if send is successful, depending on server response.
      *
+     * @param data  original objects sent to server
+     * @return <code>true</code> if success, else <code>false</code>
+     * @throws IOException if getting response fail
      */
     protected boolean hasSendDataSucceed (Object... data) throws IOException
     {
