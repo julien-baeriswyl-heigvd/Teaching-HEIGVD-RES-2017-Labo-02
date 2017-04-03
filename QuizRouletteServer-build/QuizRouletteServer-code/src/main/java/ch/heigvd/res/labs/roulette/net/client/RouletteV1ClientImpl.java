@@ -152,7 +152,15 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
         // JBL: send items line by line
         for (Object item : data)
         {
-            pw.println(item.toString());
+            if (item instanceof String)
+            {
+                pw.println(item);
+            }
+            else if (item instanceof Student)
+            {
+                pw.println(((Student)item).getFullname());
+            }
+
             pw.flush();
             if (pw.checkError())
             {
@@ -254,7 +262,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 
         // JBL: test if error occurred, for instance: no student available
         RandomCommandResponse rcr = JsonObjectMapper.parseJson(getAnswer(), RandomCommandResponse.class);
-        if (!rcr.getError().isEmpty())
+        if (rcr.getError() != null && !rcr.getError().isEmpty())
         {
             throw new EmptyStoreException();
         }

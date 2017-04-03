@@ -43,17 +43,19 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
     public void disconnect() throws IOException
     {
         // JBL: send BYE command and clear resources (socket included)
-        if (sendCommand(RouletteV2Protocol.CMD_BYE)
-                && JsonObjectMapper.parseJson(getAnswer(), ByeCommandResponse.class).getStatus().equals(ByeCommandResponse.SUCCESS))
+        if (!sendCommand(RouletteV2Protocol.CMD_BYE)
+                || !JsonObjectMapper.parseJson(getAnswer(), ByeCommandResponse.class).getStatus().equals(ByeCommandResponse.SUCCESS))
         {
-            pw.close();
-            br.close();
-            clientSocket.close();
-
-            pw = null;
-            br = null;
-            clientSocket = null;
+            throw new IOException("failed to send bye command");
         }
+
+        pw.close();
+        br.close();
+        clientSocket.close();
+
+        pw = null;
+        br = null;
+        clientSocket = null;
     }
 
     @Override
@@ -64,7 +66,6 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
             throw new IOException("failed to send clear command");
         }
 
-        retrieveAnswer(RouletteV2Protocol.CMD_CLEAR);
         if (!getAnswer().equals(RouletteV2Protocol.RESPONSE_CLEAR_DONE))
         {
             throw new IOException("failed to clear students list");
@@ -78,8 +79,6 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
         {
             throw new IOException("failed to ask students list");
         }
-
-        retrieveAnswer(RouletteV2Protocol.CMD_LIST);
 
         return JsonObjectMapper.parseJson(getAnswer(), StudentsList.class).getStudents();
     }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import ch.heigvd.res.labs.roulette.data.StudentsList;
 import ch.heigvd.res.labs.roulette.net.protocol.*;
 import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
 import ch.heigvd.res.labs.roulette.data.EmptyStoreException;
@@ -43,7 +44,6 @@ public class RouletteV2ClientHandler implements IClientHandler
         writer.println("Hello. Online HELP is available. Will you find it?");
         writer.flush();
 
-        String successStatus = LoadCommandResponse.SUCCESS;
         String command;
         boolean done = false;
         int nbCommand = 0;
@@ -80,12 +80,14 @@ public class RouletteV2ClientHandler implements IClientHandler
 
                     // retrieve the number of the new students and check the difference after storage action
                     int numberOfNewStudents = store.getNumberOfStudents() - oldNumberOfStudent;
-                    writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(successStatus, numberOfNewStudents)));
+                    writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(LoadCommandResponse.SUCCESS, numberOfNewStudents)));
 
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_LIST:
-                    writer.println(JsonObjectMapper.toJson(store.listStudents()));
+                    StudentsList sl = new StudentsList();
+                    sl.setStudents(store.listStudents());
+                    writer.println(JsonObjectMapper.toJson(sl));
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_CLEAR:
