@@ -3,6 +3,7 @@ package ch.heigvd.res.labs.roulette.net.client;
 import ch.heigvd.res.labs.roulette.data.JsonObjectMapper;
 import ch.heigvd.res.labs.roulette.data.Student;
 import ch.heigvd.res.labs.roulette.data.StudentsList;
+import ch.heigvd.res.labs.roulette.net.protocol.ByeCommandResponse;
 import ch.heigvd.res.labs.roulette.net.protocol.LoadCommandResponse;
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
 import java.io.IOException;
@@ -23,10 +24,36 @@ public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRoule
         return RouletteV2Protocol.SUPPORTED_COMMANDS;
     }
 
+    @Override
     protected boolean hasSendDataSucceed (Object... data) throws IOException
     {
         LoadCommandResponse response = JsonObjectMapper.parseJson(br.readLine(), LoadCommandResponse.class);
         return response.getStatus().equals(LoadCommandResponse.SUCCESS) && response.getNumberOfNewStudents() == data.length;
+    }
+
+    @Override
+    protected boolean retrieveAnswer (String cmd) throws IOException
+    {
+        // JBL: get and check server answer if command is not last (BYE)
+        answer = br.readLine();
+        return !answer.isEmpty();
+    }
+
+    @Override
+    public void disconnect() throws IOException
+    {
+        // JBL: send BYE command and clear resources (socket included)
+        if (sendCommand(RouletteV2Protocol.CMD_BYE)
+                && JsonObjectMapper.parseJson(getAnswer(), ByeCommandResponse.class).getStatus().equals(ByeCommandResponse.SUCCESS))
+        {
+            pw.close();
+            br.close();
+            clientSocket.close();
+
+            pw = null;
+            br = null;
+            clientSocket = null;
+        }
     }
 
     @Override

@@ -82,7 +82,6 @@ public class RouletteV2ClientHandler implements IClientHandler
                     int numberOfNewStudents = store.getNumberOfStudents() - oldNumberOfStudent;
                     writer.println(JsonObjectMapper.toJson(new LoadCommandResponse(successStatus, numberOfNewStudents)));
 
-                    writer.println(RouletteV2Protocol.RESPONSE_LOAD_DONE);
                     writer.flush();
                     break;
                 case RouletteV2Protocol.CMD_LIST:

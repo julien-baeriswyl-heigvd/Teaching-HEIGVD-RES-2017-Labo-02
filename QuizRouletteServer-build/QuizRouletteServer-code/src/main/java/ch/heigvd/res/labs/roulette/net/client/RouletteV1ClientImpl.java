@@ -27,7 +27,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
 {
     private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
 
-    private   Socket         clientSocket;
+    protected Socket         clientSocket;
     protected BufferedReader br;
     protected PrintWriter    pw;
     protected String         answer;
@@ -65,7 +65,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      *
      * @return server answer
      */
-    final protected String getAnswer()
+    protected String getAnswer()
     {
         return answer;
     }
@@ -76,7 +76,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @param cmd  protocol command to verify
      * @return <code>true</code> if command is valid, else <code>false</code>
      */
-    final protected boolean isValidCommand (String cmd)
+    protected boolean isValidCommand (String cmd)
     {
         for (String supported : getSupportedCommands())
         {
@@ -95,7 +95,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @return <code>true</code> if send operation succeed, else <code>false</code>
      * @throws IOException if write operation to server failed
      */
-    final protected boolean sendCommand (String cmd) throws IOException
+    protected boolean sendCommand (String cmd) throws IOException
     {
         // JBL: control socket connexion
         if (!isConnected())
@@ -141,7 +141,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client
      * @return <code>true</code> if operation succeed, else <code>false</code>
      * @throws IOException if writing or reading into streams failed
      */
-    final protected boolean sendData (Object... data) throws IOException
+    protected boolean sendData (Object... data) throws IOException
     {
         // JBL: control socket connexion
         if (!isConnected())
